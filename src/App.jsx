@@ -1,98 +1,81 @@
 import styles from './app.module.css';
-import {useState} from "react"
+import { useState } from "react"
+import data from './data.json';
 
 export const App = () => {
-    const [value, setValue] = useState("");
-    const [list, setList] = useState([]);
-    const [isError, setIsError] = useState(false);
-    const [isValueVaild, setIsValueVaild] = useState(false);
+    const [steps, ] = useState(data);
+    const [activeIndex, setActiveIndex] = useState(0);
+    
+    const isFirstStep = activeIndex === 0;
+    const isLastStep = activeIndex === steps.length - 1;
 
-    const onInputButtonClick = () => {
-        const promptValue = prompt();
-        if (promptValue === null || promptValue.length < 3) {
-            setIsError(true);
-            setIsValueVaild(false);
+    const onPrevClick = () => {
+        setActiveIndex((prev) => prev - 1);
+    }
+
+    const onNextClick = () => {
+        if (isLastStep) {
+            setActiveIndex(0);
         } else {
-            setIsError(false);
-            setIsValueVaild(true);
+            setActiveIndex((prev) => prev + 1);
         }
-        setValue(promptValue);
     }
 
-    const clearStates = () => {
-        setValue("");
-        setIsError(false);
-        setIsValueVaild(true);
-    }
-
-    const onAddButtonClick = () => {
-        const updatedList = [...list, {
-            id: Date.now(),
-            value: value
-        }];
-        console.log("-----", updatedList);
-        setList(updatedList);
-        clearStates();
+    const getStepClasses = (index) => {
+        let classes = [styles.stepsItem];
+        if (index === activeIndex) {
+            classes.push(styles.active);
+        } else if (index < activeIndex) {
+            classes.push(styles.done);
+        }
+        return classes.join(" ");
     }
 
     return (
-        <div className={styles.app}>
-            <h1 className={styles.pageHeading}>
-                Ввод значения
-            </h1>
+		<div className={styles.container}>
+			<div className={styles.card}>
+				<h1>Инструкция по готовке пельменей</h1>
 
-            <p className={styles.noMarginText}>
-                Текущее значение <code>value</code>: "<output className={styles.currentValue}>{value}</output>"
-            </p>
+				<div className={styles.steps}>
+					<div className={styles.stepsContent}>
+                        {steps[activeIndex].content}
+					</div>
 
-            {
-                isError && 
-                    <div className={styles.error}>
-                        Введенное значение должно содержать минимум 3 символа
-                    </div>
-            }
-
-            <div className={styles.buttonsContainer}>
-                <button
-                    className={styles.button}
-                    onClick={onInputButtonClick}
-                >
-                    Ввести новое
-                </button>
-
-                <button
-                    className={styles.button}
-                    disabled={!isValueVaild}
-                    onClick={onAddButtonClick}
-                >
-                    Добавить в список
-                </button>
-            </div>
-
-            <div className={styles.listContainer}>
-                <h2 className={styles.listHeading}>
-                    Список:
-                </h2>
-
-                {
-                    list.length === 0 ?
-                        <p className={styles.noMarginText}>
-                            Нет добавленных элементов
-                        </p> :
-                        <ul className={styles.list}>
-                            {
-                                list.map((listItem) => (
-                                    <li
-                                        className={styles.listItem}
-                                        key={listItem.id}
+					<ul className={styles.stepsList}>
+                        {
+                            steps.map((_step, index) => (
+                                <li className={getStepClasses(index)}>
+                                    <button
+                                        className={styles.stepsItemButton}
+                                        onClick={() => setActiveIndex(index)}
                                     >
-                                        {listItem.value}
-                                    </li>
-                                ))
-                            }
-                        </ul>
-                }
-            </div>
-        </div>
+                                        {index + 1}
+                                    </button>
+
+                                    Шаг {index + 1}
+                                </li>
+                            ))
+                        }
+					</ul>
+
+					<div className={styles.buttonsContainer}>
+						<button
+                            className={styles.button}
+                            onClick={onPrevClick}
+                            disabled={isFirstStep}
+                        >
+                            Назад
+                        </button>
+
+						<button
+                            className={styles.button}
+                            onClick={onNextClick}
+                        >
+							{isLastStep ? "Начать сначала" : "Далее"}
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
     )
 }
